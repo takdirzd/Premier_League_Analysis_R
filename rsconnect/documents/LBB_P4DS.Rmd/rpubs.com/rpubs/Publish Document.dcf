@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/926272/74bdd2bbaae34bf59fbeafc155784898
+bundleId: https://api.rpubs.com/api/v1/document/926272/74bdd2bbaae34bf59fbeafc155784898
+url: http://rpubs.com/takdirzd/926272
+when: 1658494090.55432
+lastSyncTime: 1658494090.55435

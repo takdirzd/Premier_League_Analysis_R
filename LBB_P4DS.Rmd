@@ -1,0 +1,246 @@
+---
+title: "Premier League Stats 2006/2007 to 2017/2018"
+author: "Takdir Zulhaq Dessiaming"
+date: "2022-07-22"
+
+output:
+  html_document:
+    theme: readable
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: true
+    df_print: paged
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+<img src = "https://storage.googleapis.com/kaggle-datasets-images/36492/55620/c59bb5dc871a245f7fbf9afa8fab5a75/dataset-cover.jpg?t=2018-07-15-09-56-44">
+
+# What is Premier League?
+
+The Premier League is the organising body of the Premier League with responsibility for the competition, its Rule Book and the centralised broadcast and other commercial rights.
+
+Each individual club is independent, working within the rules of football, as defined by the Premier League, The FA, UEFA and FIFA, as well as being subject to English and European law.
+
+Each of the 20 clubs are a Shareholder in the Premier League. Consultation is at the heart of the Premier League and Shareholder meetings are the ultimate decision-making forum for Premier League policy and are held at regular intervals during the course of the season.
+
+The Premier League AGM takes place at the close of each season, at which time the relegated clubs transfer their shares to the clubs promoted into the Premier League from the Football League Championship.
+
+*Note : Premier League is the Main League/First Division of England Football League*
+
+**The main goal we have here is, how to get the club to have a lot of chances to win and keep playing in the Premier League.**
+
+# Data Analysis and EDA (Exploratory Data Analysis)
+
+## Import Data
+
+The first thing we should do is import the data to our notebook.
+
+```{r}
+df <- read.csv("stats.csv")
+df
+```
+
+As we can see, there is 42 columns, with 240 rows of data we have. This data will we use to analyze and explore the data.
+
+To get our goal, we don't have to use all the columns. We just use the columns we need. Let's take some of them :
+1. team
+2. wins
+3. losses
+4. goals
+5. total_yel_card
+6. total_red_card
+7. clean_sheet
+8. total_pass
+9. interception
+10. touches
+11. penalty_save
+12. season
+
+## Get the columns we need
+
+```{r}
+stats <- df[,c("team","wins","losses","goals","total_yel_card","total_red_card","clean_sheet","total_pass","interception","touches","penalty_save","season")]
+stats
+```
+
+## Data Cleansing
+
+```{r}
+str(stats)
+```
+Let's check missing value to make sure.
+
+### Check Missing Value
+
+```{r}
+colSums(is.na(stats))
+```
+
+There's no missing value, that's good. We can continue now.
+
+### Check Data Type
+
+```{r}
+str(stats)
+```
+The data contains 2 type of data, `num` and `chr`. For the analysis, we can change the data type for "team" and "season" columns. Why? because there is **data repeating**. So we have to change the data type to factor(category) for ease data analysis.
+
+```{r}
+stats$team <- as.factor(stats$team)
+stats$season <- as.factor(stats$season)
+str(stats)
+```
+Now all the data types is correct for each columns.
+
+## Data Explanation
+
+```{r}
+summary(stats)
+```
+```{r}
+length(levels(stats$season)) #Find unique value for season columns 
+length(levels(stats$team)) #Find unique value for team columns
+```
+📌 **Short Summary** :
+2006-2007 to 2017-2018 is 12 season
+There are **39 teams** playing for 12 season!
+There is a team that got **32 wins**, which is the highest for 12 seasons!
+There is a team that got **29 losses**, which is the highest for 12 seasons!
+There is a team that got **94 yellow cards**, which is the highest for 12 seasons!
+
+## Questions
+
+Now let's explore the data more, and ask some question or we can find the detail about the summary above!
+
+### 1. Of the existing teams, how many times have they played in the Premier League over 12 seasons?
+
+```{r}
+table(stats$team) 
+length(table(stats$team))
+```
+
+📌 **Insight** :
+- Team with "12" means that they **always plays in Premier League.**
+- Teams with "< 12" mean that they ever get **degradation (drop to 2nd Legue)** or **Promoted to Premier League**.
+  - For Example **(Promoted)** : Blackpool team have ever play in Premier League once (1 times), it means that Blackpool ever  get Promoted from 2nd England Football League to Premier League.
+  - For Example **(Degradation)** : West Ham United team just play 11 times in Premier League, it means that West Ham United ever get degradation from Premier League to 2nd England Football League.
+- Total there is **39 teams** ever played in Premier League over 12 season.
+
+### 2. What team has the most wins over 12 seasons?
+
+```{r}
+win_agg <- aggregate(data = stats, x = wins ~ team , FUN = sum)
+win_agg[order(win_agg$wins, decreasing =T),]
+
+```
+📌 Insight :
+- Looks like **Manchester United** is the strong Club maybe? They have scored **290 goals** over 12 season! 
+- Derby County is the team with the fewest goals.
+
+### 3. What is the average goal for Manchester United over 12 season?
+
+What makes Manchester United got so many wins? Let's see its average goals!
+
+```{r}
+mean_goal <- aggregate(data = stats, x = goals ~  team , FUN = mean)
+mean_goal[order(mean_goal$goals, decreasing =T),]
+```
+📌 Insight :
+- **Manchester United** has the most average goals per season, it is **72.25000**. 
+- Something interest here : 
+    - **Manchester City has more average goals** than Chelsea, only **0.58334 differ**.
+    - But **Chelsea has 20 more win** than Manchester City.
+- Derby County has the fewest average goal per season, it is **20.00000**. Which is **52.25** differ from Manchester United.
+
+### 4. What team has the most losses over 12 seasons?
+
+```{r}
+loss_agg <- aggregate(data = stats, x = losses ~ team , FUN = sum)
+loss_agg[order(loss_agg$losses, decreasing =T),]
+```
+📌 Insight :
+- **Sunderland and West Ham United*** are the teams that has lost the most..
+
+### 5. What team has the most foul over 12 seasons?
+
+Let's see what team with the most foul, we can see it from `total_yel_card` and `total_red_card`.
+
+```{r}
+foul_agg <- aggregate(data = stats, x = total_yel_card ~ team + total_red_card, FUN = sum)
+foul_agg[order(foul_agg$total_yel_card, decreasing =T),]
+
+```
+📌 Insight :
+- **Everton** is the team with the most foul over 12 season
+- We can see interesting thing there! **Manchester United**, which is the team with **the most goals**, but also be **the second team that the most foul** over 12 season!
+
+```{r}
+foul_agg[order(foul_agg$total_red_card, decreasing =T),]
+```
+📌 Insight :
+- **Queens Park Rangers and Sunderland** are the team has the most red card.
+
+## Descriptive Analysis (Correlation)
+
+As we can see that Manchester United has most win and goal average. **Does that mean that if we do goal more, we got more wins?** Let's see, we can call it **Correlation**.
+
+```{r}
+cor(stats$wins, stats$goals)
+plot(stats$goals,stats$wins)
+abline(lm(stats$wins ~ stats$goals), col="red")
+
+```
+
+*Note : In Correlation, there is a parameter which is -1 (Negative Correlation), 0 (No Correlation), and 1 (Positive Correlation)*
+
+We can see that the correlation of **goals and wins is 0.8992363, which is close to 1**. That is, goals and wins have a **Positive Correlation**. So if we score **more goals**, it can result in **more wins**!
+
+If we want to win more, is it just by scoring goals? It's part of the front line. We can also see from the side of the midfield and the back, which could also possibly be the reason for the victory. Let's examine another column of data.
+
+Columns that related to the midfield and the back are, `total_pass`,`clean_sheet`,`interception`,`touches`, and `penalty_save`.
+
+```{r}
+cor(stats$wins, stats$total_pass)
+cor(stats$wins, stats$clean_sheet)
+cor(stats$wins, stats$interception)
+cor(stats$wins, stats$touches)
+cor(stats$wins, stats$penalty_save)
+
+```
+- `total_pass`,`clean_sheet`, and `touches` has postive correlation, very close to 1. We can say that these three **has contribution to win the matches**, because it's has correlation.
+- `interception` and `penalty_save` has negative correlation, far from -1, but close to 0. We can say that these two **has no contribution to win the matches**, because it has no correlation.
+
+But how about the foul with losses? How the correlation?
+```{r}
+cor(stats$losses, stats$total_yel_card)
+```
+- It's have negative correlation.
+
+# Conclusion
+
+As in our main goal is how to get the club to have **a lot of chances to win and keep playing in the Premier League**. There are a lot of teams that maintain their position to Premier League. They compete each other to stay in the Premier League, and the bottom standings will be degraded to 2nd England Football League. **They have to stay at least top 5 of Premier League** to be promoted to the most prestigious event of the Europe Football, it is The **Champions League**. So to get our goal, based on analysis above, we can conclude that :
+
+If the team wants to make more wins, they have to :
+
+- Front Line
+  - Score a goal, this is the most contribution to get a team win the match.
+  
+- Midfield and Back Line
+  - Do more ball passes.
+  - Make sure the goalkeeper blocks all the balls that are heading towards the goal (gawang).
+  - Make sure all the players always toches the ball and make a pass to other players.
+  
+- Penalty saves and Interceptions don't guarantee a win.
+- The number of Foul does not make the team lose 
+
+# Refference
+
+- [Dataset](https://www.kaggle.com/datasets/zaeemnalla/premier-league?select=stats.csv)
+- [About Premier League](https://www.premierleague.com/about)
+- [Premier League Stats](https://www.premierleague.com/stats/top/clubs/wins?se=418)
